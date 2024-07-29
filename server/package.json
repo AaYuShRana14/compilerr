@@ -14,6 +14,7 @@
     "dockerode": "^4.0.2",
     "express": "^4.19.2",
     "nodemon": "^3.1.4",
-    "redis": "^4.6.15"
+    "redis": "^4.6.15",
+    "short-unique-id": "^5.2.0"
   }
 }

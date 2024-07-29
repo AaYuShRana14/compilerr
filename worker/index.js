@@ -9,9 +9,12 @@ async function startWorker() {
         while (true) {
             const submission = await client.brPop("submissions", 0);
             const data = submission.element;
-            const { lang, code } = JSON.parse(data);
+            const { lang, code ,id} = JSON.parse(data);
             if (lang === "java") {
-                JavaCompiler(code);
+                let res=await JavaCompiler(code);
+                const {result,executionTime}=res;
+                console.log(result,id);
+                await client.set(id,JSON.stringify({result,executionTime}));
             }
         }
     } catch (err) {
