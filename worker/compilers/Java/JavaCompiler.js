@@ -1,7 +1,7 @@
 const docker = require("dockerode")();
-const JavaCompiler = async (code) => {
+const JavaCompiler = async ({code,input}) => {
   return new Promise(async (resolve, reject) => {
-    const cmdd = `echo '${code}' > Main.java && javac Main.java && java Main`;
+    const cmdd = `echo '${code}' > Solution.java && javac Solution.java && echo "${input}" | java Solution`;
     const container = await docker.createContainer({
       Image: "openjdk",
       Tty: true,
@@ -19,11 +19,11 @@ const JavaCompiler = async (code) => {
       timeoutReached = true;
       await container.stop();
       await container.remove();
-      reject(new Error("Time Limit Exceeded"));
+      resolve({ result: "Time Limit Exceeded", executionTime: 5000 });
     }, 5000);
 
     stream.on("data", (chunk) => {
-      if (timeoutReached) return;
+      if (timeoutReached)return;
       output.push(chunk);
     });
 

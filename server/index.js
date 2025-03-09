@@ -8,10 +8,10 @@ const app=express();
 app.use(express.json());
 app.use(cors());
 app.post('/compile',async(req,res)=>{
-    const{code,lang}=req.body;
+    const{code,lang,input}=req.body;
     try{
         const id=uid.rnd();
-        await client.lPush('submissions',JSON.stringify({id,code,lang}));
+        await client.lPush('submissions',JSON.stringify({id,code,lang,input}));
         res.json({submissionId:id});
     }
     catch(err){
