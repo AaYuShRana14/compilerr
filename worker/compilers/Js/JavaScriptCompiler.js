@@ -1,6 +1,5 @@
 const docker = require("dockerode")();
 const JavaScriptCompiler = async ({ code, input }) => {
-    console.log(codd);
     return new Promise(async (resolve, reject) => {
         const cmdd = `echo '${code}' > Solution.js && echo "${input}" | node Solution.js`;
         const container = await docker.createContainer({
