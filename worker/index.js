@@ -1,5 +1,6 @@
 const JavaCompiler = require("./compilers/Java/JavaCompiler");
 const Cppcompiler = require("./compilers/Cpp/Cppcompiler");
+const PythonCompiler = require("./compilers/Python/PythonCompiler");
 const createClient = require("redis").createClient;
 const client = createClient();
 async function startWorker() {
@@ -20,6 +21,11 @@ async function startWorker() {
                 let res=await Cppcompiler({code,input});
                 const {result,executionTime}=res;
                 await client.set(id,JSON.stringify({result,executionTime}));
+            }
+            if (lang === "python") {
+                let res = await PythonCompiler({ code, input });
+                const { result, executionTime } = res;
+                await client.set(id, JSON.stringify({ result, executionTime }));
             }
         }
     } catch (err) {
