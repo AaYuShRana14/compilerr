@@ -17,6 +17,7 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }`,
+    javascript: `console.log("Hello, World!");`,
   };
 
   const [language, setLanguage] = useState("java");
