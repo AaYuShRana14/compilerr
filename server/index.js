@@ -34,6 +34,53 @@ app.get('/result/:id',async(req,res)=>{
         res.status(500).send('Error while fetching result');
     }
 });
+app.post('/snippets/new', async (req, res) => {
+  const { code, lang } = req.body;
+  try {
+    const id = uid.rnd();
+    const snippetData = { [lang]: code }; 
+    await client.set(id, JSON.stringify(snippetData), { EX: 3600 });
+    res.json({ snippetId: id });
+  } catch (err) {
+    console.error('Error while saving snippet');
+    res.status(500).send('Error while saving snippet');
+  }
+});
+
+app.get('/snippets/:id/:lang', async (req, res) => {
+  const { id, lang } = req.params;
+  try {
+    const snippet = await client.get(id);
+    if (!snippet) return res.status(404).send('Snippet not found');
+
+    const snippetData = JSON.parse(snippet);
+    const code = snippetData[lang] || null;
+
+    res.json({ code, lang });
+  } catch (err) {
+    console.error('Error while fetching snippet');
+    res.status(500).send('Error while fetching snippet');
+  }
+});
+app.post('/snippets/:id/autosave', async (req, res) => {
+  const { id } = req.params;
+  const { code, lang } = req.body;
+  try {
+    const snippet = await client.get(id);
+    if (!snippet) return res.status(404).send('Snippet not found');
+
+    const snippetData = JSON.parse(snippet);
+    snippetData[lang] = code; 
+
+    await client.set(id, JSON.stringify(snippetData), { EX: 3600 });
+    res.json({ message: `Snippet autosaved successfully for ${lang}` });
+  } catch (err) {
+    console.error('Error while autosaving snippet:', err);
+    res.status(500).send('Error while autosaving snippet');
+  }
+});
+
+
 app.listen(8000,()=>{
     startServer();
     console.log('Server started on http://localhost:8000');
