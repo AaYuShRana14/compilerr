@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect,useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import debounce from "lodash.debounce";
@@ -29,26 +29,42 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
   const [saveStatus, setSaveStatus] = useState("Idle");
 
   const outputRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // 🔹 Debounced autosave (per language)
+  // Suppress ResizeObserver errors
+  useEffect(() => {
+    const handleResizeObserverError = (e) => {
+      if (e.message && (
+        e.message.includes('ResizeObserver loop limit exceeded') ||
+        e.message.includes('ResizeObserver loop completed with undelivered notifications')
+      )) {
+        e.stopImmediatePropagation();
+      }
+    };
+
+    window.addEventListener('error', handleResizeObserverError);
+    return () => window.removeEventListener('error', handleResizeObserverError);
+  }, []);
+
+  // Debounced autosave (per language)
   const autosave = useCallback(
-  debounce(async (newCode, newLang) => {
-    if (!id) return;
-    setSaveStatus("Saving...");
-    try {
-      await axios.post(`http://210.79.129.246:8000/snippets/${id}/autosave`, {
-        code: newCode,
-        lang: newLang,
-      });
-      setSaveStatus("Saved ✅");
-    } catch {
-      setSaveStatus("Error saving");
-    }
-  }, 1500),
-  [id] // recreate only when id changes
-);
+    debounce(async (newCode, newLang) => {
+      if (!id) return;
+      setSaveStatus("Saving...");
+      try {
+        await axios.post(`http://210.79.129.246:8000/snippets/${id}/autosave`, {
+          code: newCode,
+          lang: newLang,
+        });
+        setSaveStatus("Saved ✅");
+      } catch {
+        setSaveStatus("Error saving");
+      }
+    }, 1500),
+    [id]
+  );
 
-  //  On mount: create snippet if none exists
+  // On mount: create snippet if none exists
   useEffect(() => {
     if (!id) {
       axios
@@ -59,12 +75,14 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
         .then((res) => {
           const snippetId = res.data.snippetId;
           navigate(`/editor/${snippetId}`);
+        })
+        .catch((error) => {
+          console.error("Error creating snippet:", error);
         });
     }
-    // eslint-disable-next-line
   }, []);
 
-  //  Load snippet for current language whenever id or language changes
+  // Load snippet for current language whenever id or language changes
   useEffect(() => {
     if (id) {
       axios
@@ -78,24 +96,32 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
     }
   }, [id, language]);
 
-  // Handle language change
-  const handleLanguageChange = (selectedLang) => {
-    setLanguage(selectedLang);
-    setOutput(null);
-    // snippet for new language will load in useEffect above
-  };
+  // Handle language change with smooth transition
+  const handleLanguageChange = useCallback((selectedLang) => {
+    // Use requestAnimationFrame to ensure smooth transitions
+    requestAnimationFrame(() => {
+      setLanguage(selectedLang);
+      setOutput(null);
+    });
+  }, []);
 
-  //  Handle code change
-  const handleCodeChange = (newCode) => {
-    setCode(newCode);
-    autosave(newCode, language);
-  };
+  // Handle code change with debounced autosave
+  const handleCodeChange = useCallback((newCode) => {
+    requestAnimationFrame(() => {
+      setCode(newCode);
+      autosave(newCode, language);
+    });
+  }, [autosave, language]);
 
-  // Submit (compile & run)
+  // Submit (compile & run) with better error handling
   const submitHandler = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setOutput(null);
+    
+    // Use requestAnimationFrame for smooth UI updates
+    requestAnimationFrame(() => {
+      setIsLoading(true);
+      setOutput(null);
+    });
 
     try {
       const res = await axios.post("http://210.79.129.246:8000/compile", {
@@ -114,29 +140,39 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
             setTimeout(pollResult, 1000);
           } else {
             const { result } = responseStatus.data;
-            setOutput(result || "No output");
-            setIsLoading(false);
+            // Use requestAnimationFrame for smooth output update
+            requestAnimationFrame(() => {
+              setOutput(result || "No output");
+              setIsLoading(false);
+            });
           }
-        } catch {
-          setOutput("Error fetching result");
-          setIsLoading(false);
+        } catch (error) {
+          requestAnimationFrame(() => {
+            setOutput("Error fetching result");
+            setIsLoading(false);
+          });
         }
       }
       pollResult();
-    } catch {
-      setOutput("Compilation error");
-      setIsLoading(false);
+    } catch (error) {
+      requestAnimationFrame(() => {
+        setOutput("Compilation error");
+        setIsLoading(false);
+      });
     }
   };
 
+  // Smooth scroll to bottom of output
   useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    if (outputRef.current && output) {
+      requestAnimationFrame(() => {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      });
     }
   }, [output]);
 
   return (
-    <div className="code-compiler-desktop">
+    <div className="code-compiler-desktop" ref={containerRef}>
       <div className="compiler-grid">
         <div className="language-panel">
           <div className="language-selector">
@@ -169,10 +205,13 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
               className="input-area"
               placeholder="Enter input here (optional)"
               value={input}
-              resize="none"
               onChange={(e) => setInput(e.target.value)}
             />
-            <button className="run-btn" onClick={submitHandler} disabled={isLoading}>
+            <button 
+              className="run-btn" 
+              onClick={submitHandler} 
+              disabled={isLoading}
+            >
               {isLoading ? "Compiling..." : "Run Code"}
             </button>
           </div>
