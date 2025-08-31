@@ -15,7 +15,8 @@ async function startWorker() {
             if (lang === "java") {
                 let res=await JavaCompiler({code,input});
                 const {result,executionTime}=res;
-            
+                console.log("result",result);
+                console.log("executionTime",executionTime);
                 await client.set(id,JSON.stringify({result,executionTime}));
             }
             if(lang==="cpp"){
