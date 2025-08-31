@@ -36,7 +36,7 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
     if (!id) return;
     setSaveStatus("Saving...");
     try {
-      await axios.post(`http://localhost:8000/snippets/${id}/autosave`, {
+      await axios.post(`http://210.79.129.246:8080/snippets/${id}/autosave`, {
         code: newCode,
         lang: newLang,
       });
@@ -52,7 +52,7 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
   useEffect(() => {
     if (!id) {
       axios
-        .post("http://localhost:8000/snippets/new", {
+        .post("http://210.79.129.246:8080/snippets/new", {
           code,
           lang: language,
         })
@@ -68,7 +68,7 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
   useEffect(() => {
     if (id) {
       axios
-        .get(`http://localhost:8000/snippets/${id}/${language}`)
+        .get(`http://210.79.129.246:8080/snippets/${id}/${language}`)
         .then((res) => {
           setCode(res.data.code || defaultCodes[language]);
         })
@@ -98,7 +98,7 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
     setOutput(null);
 
     try {
-      const res = await axios.post("http://localhost:8000/compile", {
+      const res = await axios.post("http://210.79.129.246:8080/compile", {
         code,
         lang: language,
         input,
@@ -108,7 +108,7 @@ int main() { std::cout << "Hello, World!" << std::endl; return 0; }`,
       async function pollResult() {
         try {
           const responseStatus = await axios.get(
-            `http://localhost:8000/result/${submissionId}`
+            `http://210.79.129.246:8080/result/${submissionId}`
           );
           if (responseStatus.status === 202) {
             setTimeout(pollResult, 1000);
