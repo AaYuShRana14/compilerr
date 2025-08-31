@@ -81,9 +81,9 @@ app.post('/snippets/:id/autosave', async (req, res) => {
 });
 
 
-app.listen(8000,()=>{
+app.listen(8000, "0.0.0.0", () => {
     startServer();
-    console.log('Server started on http://localhost:8000');
+    console.log("Server started on http://0.0.0.0:8000");
 });
 async function startServer(){
     try{
