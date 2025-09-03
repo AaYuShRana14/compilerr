@@ -5,9 +5,9 @@ const ShortUniqueId=require('short-unique-id');
 const uid = new ShortUniqueId();
 const client = createClient({
   socket: {
-    host: '121.204.162.239',  
-    port: 27941               
-  },
+    host: '127.0.0.1',  
+    port: 6379
+  }
 });
 const app=express();
 app.use(express.json());
