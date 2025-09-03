@@ -3,7 +3,12 @@ const express=require('express');
 const cors=require('cors');
 const ShortUniqueId=require('short-unique-id');
 const uid = new ShortUniqueId();
-const client=createClient();
+const client = createClient({
+  socket: {
+    host: '121.204.162.239',  
+    port: 27941               
+  },
+});
 const app=express();
 app.use(express.json());
 app.use(cors());
