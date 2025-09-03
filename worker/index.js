@@ -3,7 +3,12 @@ const Cppcompiler = require("./compilers/Cpp/Cppcompiler");
 const PythonCompiler = require("./compilers/Python/PythonCompiler");
 const JavaScriptCompiler = require("./compilers/Js/JavaScriptCompiler");
 const createClient = require("redis").createClient;
-const client = createClient();
+const client = createClient({
+  socket: {
+    host: '127.0.0.1',
+    port: 6379
+  }
+});
 async function startWorker() {
     try {
         await client.connect();
